@@ -28,14 +28,13 @@ export function registerPosts(program) {
     .option('-t, --title <title>', 'Post title')
     .option('-s, --schedule <date>', 'Schedule date (ISO 8601)')
     .option('--publish', 'Publish immediately after creating')
-    .option('-i, --image-id <imageId>', 'Attach media by ID')
+    .option('-m, --media-ids <ids>', 'Attach media by IDs (comma-separated, e.g. 1,2,3)')
+    .option('-i, --image-id <imageId>', 'Attach single image by ID (backward compat)')
     .option('-l, --link <url>', 'Append a link to the post content')
     .option('--first-comment <text>', 'Add a first comment (e.g. link in comments)')
     .action(async (opts) => {
       let content = opts.content
       if (opts.link) content += `\n\n${opts.link}`
-      // Convert plain text to HTML paragraphs for TipTap editor rendering.
-      // Backend StripHtml() converts back to plain text before LinkedIn publish.
       if (!content.includes('<p>') && !content.includes('<br')) {
         content = content
           .split(/\n\n+/)
@@ -49,7 +48,11 @@ export function registerPosts(program) {
         body.scheduled_at = opts.schedule
         body.status = 'scheduled'
       }
-      if (opts.imageId) body.image_id = parseInt(opts.imageId)
+      if (opts.mediaIds) {
+        body.media_ids = opts.mediaIds.split(',').map(id => parseInt(id.trim()))
+      } else if (opts.imageId) {
+        body.image_id = parseInt(opts.imageId)
+      }
 
       const created = await post('/api/posts', body)
       console.error(`Post created (id: ${created.id}, status: ${created.status})`)
