@@ -101,12 +101,6 @@ export async function login(params = {}) {
   return res.json()
 }
 
-export async function loginDev() {
-  const res = await fetch(new URL('/api/auth/dev-login', BASE_URL), { redirect: 'manual' })
-  const cookie = res.headers.get('set-cookie')
-  const session = cookie?.match(/session=([^;]+)/)?.[1]
-  return { session, redirect: res.headers.get('location') }
-}
 
 export async function me() {
   return get('/api/auth/me')
